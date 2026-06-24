@@ -18,13 +18,15 @@ Built on a **RAG (Retrieval-Augmented Generation)** pipeline, LegalLens AI retri
 
 ## 🎥 Demo
 
+### LIVE DEMO 🌐
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-HuggingFace_Spaces-blue)](https://huggingface.co/spaces/YOUR_USERNAME/LegalLensAI)
+
 
 > 📸 *Screenshots*
 
-| Chat Interface and Answers with Citations |
+Chat Interface and Answers with Citations |
 
-| ![Screenshot](DEMO/demo1.png) |
+[Screenshot](DEMO/demo1.png) |
 
 ---
 
