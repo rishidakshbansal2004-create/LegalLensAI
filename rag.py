@@ -41,7 +41,7 @@ def call_with_retry(content, system_prompt, max_attempts=3):
 
 def classify_query(chat_history, query):
     response = call_with_retry(
-        content=chat_history + [{"role": "user", "parts": query}],
+        content=chat_history + [{"role": "user", "parts": [{"text": query}]}],
         system_prompt=CLASSIFY_PROMPT
     )
     result = json.loads(response.text.strip())
@@ -54,7 +54,7 @@ def classify_query(chat_history, query):
 
 def handle_followup(chat_history, query):
     response = call_with_retry(
-        content=chat_history + [{"role": "user", "parts": query}],
+        content=chat_history + [{"role": "user", "parts": [{"text": query}]}],
         system_prompt=FOLLOWUP_SYSTEM_PROMPT
     )
     return response.text
@@ -75,3 +75,8 @@ def answer_query(query, vectorstore, chat_history):
         return handle_followup(chat_history, query)
     else:
         return generate_answer(query, vectorstore)
+    
+
+
+    
+    
