@@ -24,9 +24,9 @@ Built on a **RAG (Retrieval-Augmented Generation)** pipeline, LegalLens AI retri
 
 > 📸 *Screenshots*
 
-Chat Interface and Answers with Citations |
+Chat Interface and Answers with Citations
 
-[Screenshot](DEMO/demo1.png) |
+![Screenshot](DEMO/demo1.png)
 
 ---
 
