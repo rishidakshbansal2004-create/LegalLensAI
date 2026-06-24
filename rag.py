@@ -2,7 +2,7 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from config import CHROMA_PATH, EMBEDDING_MODEL,TOP_K,GEMINI_MODEL
 from dotenv import load_dotenv
-from prompts import SYSTEM_PROMPT , building_context_prompt,CLASSIFY_PROMPT,FOLLOWUP_SYSTEM_PROMPT
+from prompts import SYSTEM_PROMPT , building_context_prompt,CLASSIFY_PROMPT,FOLLOWUP_SYSTEM_PROMPT,VERIFY_PROMPT
 import time
 import json
 import os
@@ -57,16 +57,35 @@ def handle_followup(chat_history, query):
         content=chat_history + [{"role": "user", "parts": [{"text": query}]}],
         system_prompt=FOLLOWUP_SYSTEM_PROMPT
     )
-    return response.text
+    return {
+    "answer": response.text,
+    "confidence": None
+    }
+
+def verify_answer(answer, chunks):
+    verify_content = f""" RETRIEVED CHUNKS: {chunks}
+    GENERATED ANSWER: {answer} """ 
+    response=call_with_retry(content=verify_content,system_prompt=VERIFY_PROMPT)
+    confidence=response.text.strip()
+    return confidence
+  
 
 def generate_answer(query, vectorstore):
     chunks = retrieve_chunks(query, vectorstore)
     prompt = building_context_prompt(query, chunks)
-    response = call_with_retry(
+    answer = call_with_retry(
         content=prompt,
         system_prompt=SYSTEM_PROMPT
     )
-    return response.text
+    if "could not find" in answer.text.lower():
+        confidence = None
+    else:
+        confidence=verify_answer(answer.text, chunks)
+    return {
+    "answer": answer.text.strip(),
+    "confidence": confidence
+    }
+    
 
 def answer_query(query, vectorstore, chat_history):
     classification = classify_query(chat_history, query)
@@ -79,4 +98,15 @@ def answer_query(query, vectorstore, chat_history):
 
 
     
+if __name__ == "__main__":
+    vectorstore = load_chromadb()
+    
+    # Test STANDALONE
+    result = answer_query(
+        query="I bought a phone online, it stopped working after 2 days, the seller is not responding and I think my data was also stolen from the app. What can I do?",
+        vectorstore=vectorstore,
+        chat_history=[]
+    )
+    print(result["answer"])
+    print(result["confidence"])
     
