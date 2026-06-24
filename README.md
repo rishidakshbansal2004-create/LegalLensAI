@@ -1,7 +1,7 @@
 ---
 title: LegalLens AI
 emoji: 🏛️
-colorFrom: brown
+colorFrom: yellow
 colorTo: blue
 sdk: streamlit
 sdk_version: 1.58.0
