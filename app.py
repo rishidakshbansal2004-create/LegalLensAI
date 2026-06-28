@@ -129,6 +129,7 @@ with st.sidebar:
     - 📄 RTI Act 2005
     - 💻 IT Act 2000
     - 🚗 Motor Vehicles Act 1988
+    - ⚖️ Bharatiya Nyaya Sanhita 2023            
     """)
     
     st.markdown("---")
