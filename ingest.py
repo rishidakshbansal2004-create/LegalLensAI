@@ -14,7 +14,8 @@ def load_documents():
         "consumer": "Consumer Protection Act 2019",
         "rti": "RTI Act 2005",
         "it_act": "IT Act 2000",
-        "motor": "Motor Vehicles Act 1988"
+        "motor": "Motor Vehicles Act 1988",
+        "bns": "BNS 2023"
     }
 ## 
     for filename in os.listdir(DOCUMENTS_PATH):

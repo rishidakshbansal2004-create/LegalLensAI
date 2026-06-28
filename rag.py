@@ -1,5 +1,7 @@
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_classic.retrievers import BM25Retriever, EnsembleRetriever
+from langchain_core.documents import Document
 from config import CHROMA_PATH, EMBEDDING_MODEL,TOP_K,GEMINI_MODEL
 from dotenv import load_dotenv
 from prompts import SYSTEM_PROMPT , building_context_prompt,CLASSIFY_PROMPT,FOLLOWUP_SYSTEM_PROMPT,VERIFY_PROMPT
@@ -20,8 +22,12 @@ def load_chromadb():
     return vector_store
 
 def retrieve_chunks(query, vectorstore, k=TOP_K):
-    retrieved_chunks=vectorstore.similarity_search(query ,k=k)
-    return retrieved_chunks
+    vector_retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={"k": k}
+)
+    results = vector_retriever.invoke(query)
+    return results
 
 def call_with_retry(content, system_prompt, max_attempts=3):
     for attempt in range(max_attempts):
@@ -101,12 +107,8 @@ def answer_query(query, vectorstore, chat_history):
 if __name__ == "__main__":
     vectorstore = load_chromadb()
     
-    # Test STANDALONE
-    result = answer_query(
-        query="I bought a phone online, it stopped working after 2 days, the seller is not responding and I think my data was also stolen from the app. What can I do?",
-        vectorstore=vectorstore,
-        chat_history=[]
-    )
-    print(result["answer"])
-    print(result["confidence"])
-    
+    chunks = vectorstore.similarity_search("how do I file an RTI application?", k=4)
+    for chunk in chunks:
+        print(chunk.metadata['law'], '-', chunk.metadata['page'])
+        print(chunk.page_content[:200])
+        print("---")
