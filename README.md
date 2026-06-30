@@ -17,11 +17,7 @@ Built on a **RAG (Retrieval-Augmented Generation)** pipeline, LegalLens AI retri
 
 > 🚀 **[Live Demo on HuggingFace](https://huggingface.co/spaces/RISHI-DEPLOY/LegalLensAI)**
 
-![LegalLens AI Demo](screenshots/demo.png)
-
-
-![Chat](DEMO/demo1.png) 
-
+![LegalLens Demo](DEMO/demo1.png)
 ---
 
 ## ✨ Features
