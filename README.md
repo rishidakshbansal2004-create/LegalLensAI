@@ -1,21 +1,8 @@
----
-title: LegalLens AI
-emoji: 🏛️
-colorFrom: yellow
-colorTo: blue
-sdk: streamlit
-sdk_version: 1.58.0
-app_file: app.py
-pinned: false
----
-# 🏛️ LegalLens AI. -V1
+
+# 🏛️ LegalLens AI — V2
 ### RAG-Powered Indian Legal Assistant
 
-> *Empowering everyday Indians with legal knowledge — in plain language, with cited sources.*
-
-
----
-
+> *Empowering everyday Indians with legal knowledge — in plain language, with cited sources.
 ## 📖 About
 
 Most Indians don't have access to a lawyer for everyday legal questions — whether it's a builder delaying possession, an online fraud, or filing an RTI. **LegalLens AI** bridges that gap.
@@ -28,22 +15,20 @@ Built on a **RAG (Retrieval-Augmented Generation)** pipeline, LegalLens AI retri
 
 ## 🎥 Demo
 
-### LIVE DEMO 🌐
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-HuggingFace_Spaces-blue)](https://huggingface.co/spaces/YOUR_USERNAME/LegalLensAI)
+> 🚀 **[Live Demo on HuggingFace](https://huggingface.co/spaces/RISHI-DEPLOY/LegalLensAI)**
+
+![LegalLens AI Demo](screenshots/demo.png)
 
 
-> 📸 *Screenshots*
-
-Chat Interface and Answers with Citations
-
-![Screenshot](DEMO/demo1.png)
+![Chat](DEMO/demo1.png) 
 
 ---
 
 ## ✨ Features
 
 - **RAG Pipeline** — Retrieves relevant legal chunks before generating any answer
-- **Query Classification** — Intelligently routes STANDALONE vs FOLLOWUP queries
+- **MMR Reranking** — Maximal Marginal Relevance ensures diverse, non-redundant chunk retrieval
+- **Query Classification** — Intelligently routes STANDALONE legal queries through full RAG pipeline and FOLLOWUP queries through chat history
 - **Source Citations** — Every answer cites exact law and page number
 - **Answer Verification** — LLM-as-judge checks if answer is grounded in retrieved chunks (HIGH/MEDIUM/LOW)
 - **Actionable Steps** — Tells users what they can actually do, not just what the law says
@@ -54,7 +39,7 @@ Chat Interface and Answers with Citations
 
 ---
 
-## 📚 Laws Covered (V1)
+## 📚 Laws Covered (V2)
 
 | # | Law | Year | Coverage |
 |---|---|---|---|
@@ -63,8 +48,22 @@ Chat Interface and Answers with Citations
 | 3 | Right to Information Act | 2005 | Filing RTI, exemptions, timelines |
 | 4 | Information Technology Act | 2000 | Cybercrime, identity theft, data privacy |
 | 5 | Motor Vehicles Act | 1988 (amended 2019) | Accidents, insurance, driving licence |
+| 6 | Bharatiya Nyaya Sanhita | 2023 | Theft, fraud, assault, murder, organized crime |
 
-> **Note:** All laws sourced from official government PDFs (indiacode.nic.in, legislative.gov.in). Minor amendments post-2021 may not be reflected. Always verify with a qualified lawyer.
+> **Note:** All laws sourced from official government PDFs (indiacode.nic.in, legislative.gov.in). Always verify with a qualified lawyer.
+
+---
+
+## 📊 Performance
+
+| Metric | V1 | V2 |
+|---|---|---|
+| Laws | 5 | 6 |
+| Pages | 316 | 428 |
+| Chunks | 1,437 | 2,048 |
+| Eval queries | 100 | 120 |
+| Retrieval accuracy | 90% | **94.2%** |
+| Retrieval method | Cosine similarity | **MMR reranking** |
 
 ---
 
@@ -78,7 +77,7 @@ classify_query() — STANDALONE or FOLLOWUP?
 STANDALONE                   FOLLOWUP
     ↓                           ↓
 retrieve_chunks()         handle_followup()
-(ChromaDB search)         (chat history only)
+(MMR reranking)           (chat history only)
     ↓                           ↓
 building_context_prompt()       ↓
     ↓                           ↓
@@ -102,6 +101,7 @@ app.py displays result
 | LLM | Gemini 2.5 Flash (`google-genai`) |
 | Embeddings | `all-mpnet-base-v2` (sentence-transformers) |
 | Vector Database | ChromaDB (persistent) |
+| Retrieval | MMR reranking via LangChain |
 | RAG Framework | LangChain |
 | PDF Processing | PyMuPDF |
 | UI | Streamlit |
@@ -149,12 +149,13 @@ Download the following official PDFs and place them in the `documents/` folder:
 | `rti_act_2005.pdf` | [indiacode.nic.in](https://indiacode.nic.in/bitstream/123456789/1975/3/right_to_information_act.pdf) |
 | `it_act_2000.pdf` | [indiacode.nic.in](https://indiacode.nic.in/bitstream/123456789/13116/1/it_act_2000_updated.pdf) |
 | `motor_vehicles_act_1988.pdf` | [indiacode.nic.in](https://indiacode.nic.in/bitstream/123456789/1798/1/A1988-59.pdf) |
+| `bns_2023.pdf` | [indiacode.nic.in](https://www.indiacode.nic.in/bitstream/123456789/20062/1/a202345.pdf) |
 
 ### 6. Build the vector database
 ```bash
 python ingest.py
 ```
-This runs once and builds ChromaDB with 1,437 chunks from all 5 acts. Takes 2-3 minutes on first run (downloads embedding model).
+This runs once and builds ChromaDB with 2,048 chunks from all 6 acts.
 
 ### 7. Run the app
 ```bash
@@ -174,6 +175,8 @@ LegalLensAI/
 ├── ingest.py           ← Document processing (run once)
 ├── prompts.py          ← All LLM prompts
 ├── config.py           ← Tunable parameters
+├── eval.py             ← Evaluation script (120 queries)
+├── eval_set.json       ← 120-query evaluation dataset
 ├── documents/          ← Raw PDFs (gitignored)
 ├── legal_db/           ← ChromaDB vector store (pre-built)
 ├── .env                ← API key (gitignored)
@@ -201,40 +204,45 @@ DOCUMENTS_PATH = "./documents"
 
 ## 🗺️ Roadmap
 
-### V1 (Current) ✅
+### V1 ✅
 - RAG pipeline with 5 Indian acts
 - Query classification (STANDALONE/FOLLOWUP)
 - Answer verification agent
 - Hinglish support
-- Professional Streamlit UI
+- 90% retrieval accuracy
 
-### V2 (Planned)
-- Hybrid search (BM25 + vector via EnsembleRetriever)
-- LangSmith observability
-- BNS 2023 (replaces IPC) added
+### V2 ✅ (Current)
+- BNS 2023 added (6th law)
+- MMR reranking — 94.2% retrieval accuracy
+- Expanded evaluation set (120 queries)
 
-### V3 (Future)
-- Metadata filtering — search within specific act
+### V3 (Planned)
+- Multilingual pipeline — translate Hindi queries to English before retrieval
+- Response language matching — answer in user's language
 - Response streaming
-- Better Hinglish — translation step before embedding
-- More acts added
+- Section number lookup improvement
 
-### V4 (Research)
-- Graph RAG with Neo4j
-- PDF upload for custom contracts
-- Fine-tuned embedding model on Indian legal text
+### V4-5 (Future)
+- Decoupling backend with Fast-Api
+- Twilio voice integration — call a number, speak your question, get answer in voice
+- Whisper STT + Sarvam AI TTS for Hindi voice support
+- FastAPI webhook for telephony
 
 ---
 
 ## ⚠️ Disclaimer
 
-LegalLens AI provides legal **information** for guidance only. It is **not** a substitute for professional legal advice. Always consult a qualified lawyer for your specific situation. The app is based on laws as available at the time of building — minor amendments may not be reflected.
+LegalLens AI provides legal **information** for guidance only. It is **not** a substitute for professional legal advice. Always consult a qualified lawyer for your specific situation.
 
 ---
 
 ## 👨‍💻 Author
 
 **Rishi Bansal**
+- LinkedIn: [linkedin.com/in/rishi-bansal1901](https://linkedin.com/in/rishi-bansal1901)
+- GitHub: [github.com/rishidakshbansal2004-create](https://github.com/rishidakshbansal2004-create)
+- HuggingFace: [RISHI-DEPLOY](https://huggingface.co/RISHI-DEPLOY)
+
 ---
 
 ## 📄 License
